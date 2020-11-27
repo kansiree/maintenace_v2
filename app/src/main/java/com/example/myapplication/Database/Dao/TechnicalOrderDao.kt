@@ -10,13 +10,13 @@ import com.example.myapplication.Database.Entity.TechnicalOrderEntity
 @Dao
 interface TechnicalOrderDao {
     @Insert
-    fun insertTechnicalOrder(vararg tech : TechnicalOrderEntity)
+    fun insertTechnicalOrder(vararg tech: TechnicalOrderEntity)
 
     @Delete
-    fun deleteTechnicalOrder(tech : TechnicalOrderEntity)
+    fun deleteTechnicalOrder(tech: TechnicalOrderEntity)
 
     @Query("SELECT * FROM TechnicalOrderEntity")
-    fun getMasterTechnical():List<TechnicalOrderEntity>
+    fun getMasterTechnical(): List<TechnicalOrderEntity>
 
     @Query("SELECT * FROM TechnicalOrderEntity WHERE fullName LIKE :fullname")
     fun findByFullName(fullname: String): LiveData<List<TechnicalOrderEntity>>

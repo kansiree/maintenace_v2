@@ -1,7 +1,9 @@
-package com.example.myapplication.ManageUtil
+package com.example.myapplication.ManageService
 
 import android.content.Context
 import android.util.Log
+import androidx.fragment.app.FragmentManager
+import com.example.myapplication.CustomDialog
 import com.example.myapplication.Database.AppDatabase
 import com.example.myapplication.Database.Entity.AircraftEntity
 import com.example.myapplication.Database.Entity.SystemEntity
@@ -16,7 +18,8 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory.create
 
-class ServiceManage(var context: Context) {
+
+class ServiceManage(context: Context) : BaseAPI(context) {
     val TAG: String = "ServiceManage"
 
     private fun buildRetrofit(): Retrofit {
@@ -26,44 +29,57 @@ class ServiceManage(var context: Context) {
             .build()
     }
 
-    fun getTechnicalOrderMaster(): String {
-        val service = buildRetrofit().create(MasterService::class.java)
+    fun getTechnicalOrderMaster(callback: OnResponseServiceCallBack) {
+        val common: Repository
+        val service = Repository.create<MasterService>(BaseUrl)
         val call = service.getMasterTechnicalOrder()
         var resMasterTechnical: String = "Default Value. "
-        call.enqueue(object : Callback<MasterResponse> {
-            override fun onResponse(
-                call: Call<MasterResponse>,
-                response: Response<MasterResponse>
-            ) {
-                var responses: MasterResponse = response.body()!!
-                val db = AppDatabase(context)
-                for (item in responses.message) {
-                    GlobalScope.launch {
-                        db.technicalOrderDao().insertTechnicalOrder(
-                            TechnicalOrderEntity(
-                                Integer.parseInt(item.id),
-                                item.created_date,
-                                item.full_name
-                            )
+        setCaller(call)
+        enqueue(call , callback)
+//        call.enqueue(object : Callback<MasterResponse> {
+//                override fun onResponse(
+//                    call: Call<MasterResponse>,
+//                    response: Response<MasterResponse>
+//                ) {
+//                    var code = ResponseCode.from(response.code())
+//                    resMasterTechnical = when (code) {
+//                        ResponseCode.SUCCESS -> insertTechnicalOrder(response)
+//                        ResponseCode.SERVICE_UNAVAILABLE -> code.toString()
+//                        ResponseCode.INTERNAL_SERVER_ERROR -> code.toString()
+//
+//                        else -> code.toString()
+//                    }
+//                    CustomDialog(resMasterTechnical).show(fragmentManager, "Dialog")
+//                }
+//                override fun onFailure(call: Call<MasterResponse>, t: Throwable) {
+//                    resMasterTechnical = t.message.toString()
+//
+//                }
+//            })
+    }
+
+    fun insertTechnicalOrder(response: Response<MasterResponse>): String {
+        try {
+            var responses: MasterResponse = response.body()!!
+            val db = AppDatabase(context)
+            for (item in responses.message) {
+                val launch = GlobalScope.launch {
+                    db.technicalOrderDao().insertTechnicalOrder(
+                        TechnicalOrderEntity(
+                            Integer.parseInt(item.id),
+                            item.created_date,
+                            item.full_name
                         )
-                        var data = db.technicalOrderDao().getMasterTechnical()
-
-                        data?.forEach {
-                            println(it)
-                            Log.i(TAG, it.fullName)
-                        }
-
-                    }
+                    )
                 }
-          //      db.close()
-                resMasterTechnical = response.message().toString()
+                db.close()
             }
+            return response.message().toString()
+        }
+        catch (e: Exception){
+            return e.message.toString()
+        }
 
-            override fun onFailure(call: Call<MasterResponse>, t: Throwable) {
-                resMasterTechnical = t.message.toString()
-            }
-        })
-        return resMasterTechnical
     }
 
     fun getSystemMaster(): String {
@@ -95,7 +111,7 @@ class ServiceManage(var context: Context) {
 
                     }
                 }
-              //  db.close()
+                //  db.close()
                 resMasterSystem = response.message().toString()
             }
 
@@ -150,4 +166,8 @@ class ServiceManage(var context: Context) {
     companion object {
         var BaseUrl = "https://hidden-harbor-84295.herokuapp.com"
     }
+
+
+
+
 }

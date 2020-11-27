@@ -9,7 +9,11 @@ import kotlinx.android.synthetic.main.dialog_message.*
 
 class CustomDialog(var message: String) : DialogFragment() {
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View? {
         getDialog()!!.getWindow()?.setBackgroundDrawableResource(R.drawable.round_corner);
         return inflater.inflate(R.layout.dialog_message, container, false)
     }
